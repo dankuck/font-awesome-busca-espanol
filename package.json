@@ -1,0 +1,25 @@
+{
+  "name": "font-awesome-busca-espanol",
+  "version": "1.0.0",
+  "description": "Busca la biblioteca de iconos Font Awesome en espanol",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-libraries": "node build-libraries.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dankuck/font-awesome-busca-espanol.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dankuck/font-awesome-busca-espanol/issues"
+  },
+  "homepage": "https://github.com/dankuck/font-awesome-busca-espanol#readme",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
+    "fast-glob": "^3.2.7",
+    "xml2json": "^0.12.0"
+  }
+}
