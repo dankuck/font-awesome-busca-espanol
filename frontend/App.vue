@@ -20,7 +20,7 @@
         </div>
         <div class="row">
             <div class="col-6 col-md-3 col-xl-2 mb-5"
-                v-for="icon in icons"
+                v-for="icon in iconsWithoutAd"
                 :key="icon"
             >
                 <a
@@ -37,7 +37,7 @@
                     </div>
                 </a>
             </div>
-            <div v-if="icons.length === 0" class="col text-center fs-1">
+            <div v-if="iconsWithoutAd.length === 0" class="col text-center fs-1">
                 No hay resultados.
             </div>
         </div>
@@ -60,6 +60,10 @@ export default {
             } else {
                 return this.search(this.query);
             }
+        },
+        iconsWithoutAd() {
+            // ad blockers block 'ad' and make this one ugly
+            return this.icons.filter(icon => icon != 'ad');
         },
         allIcons() {
             return [...new Set(Object.values(spanishMap).flat(1))];
