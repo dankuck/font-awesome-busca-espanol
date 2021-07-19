@@ -1,0 +1,11 @@
+a {
+    color: black;
+}
+
+.icon {
+    text-decoration:none;
+}
+
+.icon .fas {
+    font-size: 100px;
+}

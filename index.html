@@ -1,19 +1,38 @@
 <!doctype html>
-<html>
+<html class="h-100">
 <head>
     <title>Buscar Font Awesome en español</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="./css/bootstrap.css" rel="stylesheet">
     <link href="./css/fa/all.css" rel="stylesheet">
+    <link href="./css/site.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <h1>Buscar Font Awesome en español</h1>
-        <div id="app">
-            <app />
+<body class="d-flex flex-column h-100">
+    <main class="flex-shrink-0">
+        <div class="container">
+
+            <h1>Buscar Font Awesome en español</h1>
+
+            <div id="app">
+                <app />
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <footer class="footer mt-auto py-3 bg-light">
+        <div class="container">
+            <small>
+                Hecho con <a href="https://fontawesome.com">Font Awesome 5</a>,
+                <a href="https://nodejs.org">Node</a>,
+                <a href="https://getbootstrap.com">Bootstrap 5</a>,
+                <a href="https://github.com/mananoreboton/en-es-en-Dic">mananoreboton/en-es-en-Dic</a>, y
+                <a href="https://vuejs.org">Vue.js 2</a>.
+            </small>
+        </div>
+    </footer>
+
     <script src="app.js"></script>
 </body>
 </html>
