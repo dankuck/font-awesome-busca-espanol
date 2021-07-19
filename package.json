@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-libraries": "node build-libraries.js"
+    "copy-fa": "cp ./node_modules/@fortawesome/fontawesome-free/css/all.css ./css/fa/ && cp ./node_modules/@fortawesome/fontawesome-free/webfonts/* ./css/webfonts/",
+    "copy-bootstrap": "cp ./node_modules/bootstrap/dist/css/bootstrap.css ./css/",
+    "build-spanish-map": "node spanish_map/build.js",
+    "build": "node ./node_modules/webpack/bin/webpack.js --config webpack.conf.js"
   },
   "repository": {
     "type": "git",
@@ -18,8 +21,17 @@
   },
   "homepage": "https://github.com/dankuck/font-awesome-busca-espanol#readme",
   "dependencies": {
+    "@babel/core": "^7.14.6",
     "@fortawesome/fontawesome-free": "^5.15.3",
+    "babel-loader": "^8.2.2",
+    "bootstrap": "^5.0.2",
+    "css-loader": "^6.1.0",
     "fast-glob": "^3.2.7",
+    "vue": "^2.6.14",
+    "vue-loader": "^15.9.7",
+    "vue-template-compiler": "^2.6.14",
+    "webpack": "^5.45.1",
+    "webpack-cli": "^4.7.2",
     "xml2json": "^0.12.0"
   }
 }
