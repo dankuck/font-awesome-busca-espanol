@@ -20,7 +20,7 @@
         </div>
         <div class="row">
             <div class="col-6 col-md-3 col-xl-2 mb-5"
-                v-for="icon in iconsWithoutAd"
+                v-for="icon in safeIcons"
                 :key="icon"
             >
                 <a
@@ -40,7 +40,7 @@
                     </pre>
                 </a>
             </div>
-            <div v-if="iconsWithoutAd.length === 0" class="col text-center fs-1">
+            <div v-if="safeIcons.length === 0" class="col text-center fs-1">
                 No hay resultados.
             </div>
         </div>
@@ -49,6 +49,13 @@
 
 <script>
 import spanishMap from '../spanish_map/spanish_map.json';
+
+const bad_icons =  [
+    // ad blockers block 'ad'
+    'ad',
+    // missing somehow
+    'font-awesome-logo-full',
+];
 
 export default {
     data() {
@@ -76,9 +83,8 @@ export default {
                 return this.search(this.query);
             }
         },
-        iconsWithoutAd() {
-            // ad blockers block 'ad' and make this one ugly
-            return this.icons.filter(icon => icon != 'ad');
+        safeIcons() {
+            return this.icons.filter(icon => ! bad_icons.includes(icon));
         },
         allIcons() {
             return [...new Set(Object.values(spanishMap).flat(1))]
