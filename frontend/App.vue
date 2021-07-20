@@ -8,19 +8,20 @@
                 placeholder="Buscar iconos"
                 aria-label="Buscar"
                 aria-describedby="botón"
-                @keyup.enter="search"
             />
 
+            <!-- The search button is a decoy. It just makes you leave the
+                input box. That's the action which causes a change (in browsers
+                that don't change on keyup) -->
             <button
                 class="btn btn-outline-secondary"
-                @click="search"
             >
                 <i class="fas fa-search"></i>
             </button>
         </div>
         <div class="row">
             <div class="col-6 col-md-3 col-xl-2 mb-5"
-                v-for="icon in safeIcons.slice(0, iconTimer)"
+                v-for="icon in safeIconsGovernor"
                 :key="icon"
             >
                 <a
@@ -49,6 +50,7 @@
 
 <script>
 import spanishMap from '../spanish_map/spanish_map.json';
+import ArrayGovernorMixin from './ArrayGovernorMixin.js';
 
 const bad_icons =  [
     // ad blockers block 'ad'
@@ -58,31 +60,15 @@ const bad_icons =  [
 ];
 
 export default {
+    mixins: [
+        ArrayGovernorMixin('safeIcons', 100, 0),
+    ],
     data() {
         const url = new URL(location);
         return {
             query: '',
             debug: url.searchParams.get('debug') || false,
-            iconTimer: Infinity,
         };
-    },
-    watch: {
-        icons() {
-            const length = this.icons.length;
-            if (this.iconTimerInterval) {
-                clearInterval(this.iconTimerInterval);
-            }
-            this.iconTimer = 0;
-            this.iconTimerInterval = setInterval(
-                () => {
-                    this.iconTimer += 10;
-                    if (this.iconTimer > length) {
-                        clearInterval(this.iconTimerInterval);
-                    }
-                },
-                100
-            );
-        },
     },
     computed: {
         icons() {
