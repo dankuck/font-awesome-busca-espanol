@@ -11,7 +11,7 @@ const icons = glob([svg_path + '*'])
     ));
 
 const dictionary = new Promise(
-        (resolve, reject) => fs.readFile('./en-es.xml', (err, data) => {
+        (resolve, reject) => fs.readFile('./spanish_map/en-es.xml', (err, data) => {
             err && reject(err);
             resolve(data);
         })
@@ -307,7 +307,7 @@ Promise.all([
                 }
                 if (dictionary[english]) {
                     dictionary[english].forEach(spanish => {
-                        search[spanish] = (search[spanish] || []).concat(icon);
+                        search[spanish] = (search[spanish] || new Set()).add(icon);
                     });
                 }
             });
@@ -316,9 +316,16 @@ Promise.all([
         }, {});
     })
     .then((spanish_map) => {
+        return Object.keys(spanish_map)
+            .reduce((map, spanish) => {
+                map[spanish] = [...spanish_map[spanish]];
+                return map;
+            }, {});
+    })
+    .then((spanish_map) => {
         return new Promise((resolve, reject) => {
             fs.writeFile(
-                './spanish_map.json',
+                './spanish_map/spanish_map.json',
                 JSON.stringify(spanish_map, null, 0),
                 (err, result) => { err && reject(err) || resolve(result) }
             );

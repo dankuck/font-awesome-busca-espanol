@@ -10,7 +10,7 @@ module.exports = {
         filename: 'app.js',
         path: __dirname,
     },
-    mode: 'production',
+    mode: 'development',
     resolve: {
         extensions: ['.vue', '.js'],
         alias: {
