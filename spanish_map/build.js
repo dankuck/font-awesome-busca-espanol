@@ -283,10 +283,9 @@ const extraDictionary = {
 /**
  * As we built this script we discovered these words that have no proper
  * translation. If someone searches for these things they'll use these same
- * terms. They will find them because the frontend will search the original
- * icon names as  well. So it is not necessary to translate them.
+ * terms. So when we build the spanish map, we'll just keep them.
  */
-const ignore = [
+const same = [
     "africa",
     "americas",
     "asia",
@@ -349,11 +348,11 @@ Promise.all([
                 english = substitute(english, dictionary);
                 if (
                     !dictionary[english]
-                    && !/\s/.test(english)      // Don't require the full term
-                                                // to exist
-                    && english.length > 1       // Ignore 1-letter words
-                    && !/\d/.test(english)      // Ignore numbers
-                    && !ignore.includes(english)// Ignore from this list
+                    && !/\s/.test(english)     // Don't require the full term
+                                               // to exist
+                    && english.length > 1      // Ignore 1-letter words
+                    && !/\d/.test(english)     // Ignore numbers
+                    && !same.includes(english) // Not a problem
                 ) {
                     // Tell the coder that we cannot translate this word
                     // They'll have to add it to the extraDictionary or the
@@ -369,6 +368,9 @@ Promise.all([
                 }
             });
 
+            // Ensure users can search the original term
+            search[icon] = (search[icon] || new Set()).add(icon);
+
             return search;
         }, {});
     })
@@ -379,6 +381,26 @@ Promise.all([
                 map[spanish] = [...spanish_map[spanish]];
                 return map;
             }, {});
+    })
+    .then((spanish_map) => {
+        // Check that all icons are present
+        const found = [...new Set(
+            Object.values(spanish_map)
+            .flat()
+        )];
+        // Remember `icons` from way up at the top? Ick.
+        return icons
+            .then(icons => {
+                icons = new Set(icons);
+                found.forEach(icon => icons.delete(icon));
+                if (icons.size) {
+                    throw new Error(
+                        'Some icons did not receive translations: '
+                        + [...icons].join(', ')
+                    );
+                }
+            })
+            .then(() => spanish_map);
     })
     .then((spanish_map) => {
         // Write to the file

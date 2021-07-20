@@ -18,7 +18,30 @@
                 <i class="fas fa-search"></i>
             </button>
         </div>
-        <div class="row">
+        <div class="row" v-show="!query">
+            <div class="col-6 col-md-3 col-xl-2 mb-5"
+                v-for="icon in allSafeIcons"
+                :key="icon"
+            >
+                <a
+                    :href="`https://fontawesome.com/v5.9/icons/${icon}`"
+                    class="icon"
+                    target="_blank"
+                >
+                    <i
+                        class="fas"
+                        :class="`fa-${icon}`"
+                    ></i>
+                    <div>
+                        {{ icon }}
+                    </div>
+                    <pre v-if="debug">
+                        {{ matches[icon] }}
+                    </pre>
+                </a>
+            </div>
+        </div>
+        <div class="row" v-if="query">
             <div class="col-6 col-md-3 col-xl-2 mb-5"
                 v-for="icon in safeIcons"
                 :key="icon"
@@ -58,6 +81,9 @@ const bad_icons =  [
 ];
 
 export default {
+    components: {
+        IconList,
+    },
     data() {
         const url = new URL(location);
         return {
@@ -89,6 +115,9 @@ export default {
         allIcons() {
             return [...new Set(Object.values(spanishMap).flat(1))]
                 .sort((a, b) => a.localeCompare(b));
+        },
+        allSafeIcons() {
+            return this.allIcons.filter(icon => ! bad_icons.includes(icon));
         },
     },
     methods: {
@@ -149,7 +178,7 @@ export default {
                 // the term we used to find them.
                 return {
                     term,
-                    icons: spanish_icons.concat(direct_icons),
+                    icons: spanish_icons,//.concat(direct_icons),
                 };
             });
 
