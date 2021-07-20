@@ -18,32 +18,9 @@
                 <i class="fas fa-search"></i>
             </button>
         </div>
-        <div class="row" v-show="!query">
+        <div class="row">
             <div class="col-6 col-md-3 col-xl-2 mb-5"
-                v-for="icon in allSafeIcons"
-                :key="icon"
-            >
-                <a
-                    :href="`https://fontawesome.com/v5.9/icons/${icon}`"
-                    class="icon"
-                    target="_blank"
-                >
-                    <i
-                        class="fas"
-                        :class="`fa-${icon}`"
-                    ></i>
-                    <div>
-                        {{ icon }}
-                    </div>
-                    <pre v-if="debug">
-                        {{ matches[icon] }}
-                    </pre>
-                </a>
-            </div>
-        </div>
-        <div class="row" v-if="query">
-            <div class="col-6 col-md-3 col-xl-2 mb-5"
-                v-for="icon in safeIcons"
+                v-for="icon in safeIcons.slice(0, iconTimer)"
                 :key="icon"
             >
                 <a
@@ -86,7 +63,26 @@ export default {
         return {
             query: '',
             debug: url.searchParams.get('debug') || false,
+            iconTimer: Infinity,
         };
+    },
+    watch: {
+        icons() {
+            const length = this.icons.length;
+            if (this.iconTimerInterval) {
+                clearInterval(this.iconTimerInterval);
+            }
+            this.iconTimer = 0;
+            this.iconTimerInterval = setInterval(
+                () => {
+                    this.iconTimer += 10;
+                    if (this.iconTimer > length) {
+                        clearInterval(this.iconTimerInterval);
+                    }
+                },
+                100
+            );
+        },
     },
     computed: {
         icons() {
@@ -250,7 +246,7 @@ export default {
                     .replace(/[nñ]/i, '[nñ]'),
                 'i'
             );
-        }
+        },
     },
 };
 </script>
