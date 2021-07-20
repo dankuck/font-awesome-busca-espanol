@@ -1,25 +1,46 @@
-const { open } = require('fs/promises');
+/**
+ * Let's take all the icon names we can find and all the data from an English
+ * to Spanish dictionary and produce a file like this:
+ *
+ * {
+ *     "spanish term": ["matching-icon", ...],
+ *     ...
+ * }
+ *
+ * It should include all the icons names we found and as many Spanish terms for
+ * them that we could find.
+ */
+
 const xml2json = require('xml2json');
 const fs = require('fs');
 const glob = require('fast-glob');
 
 const svg_path = './node_modules/@fortawesome/fontawesome-free/svgs/solid/';
 
+/**
+ * Font Awesome helpfully provides each icon as an svg with the same name that
+ * is used when developing. So lets just get that list.
+ */
 const icons = glob([svg_path + '*'])
     .then(files => files.map(
         file => file.substr(svg_path.length).replace(/\.svg/, '')
     ));
 
+/**
+ * mananoreboton/en-es-en-Dic is an XML file of English words (apparently
+ * nouns-only, but that's fine) and some of their Spanish translations.
+ * We can turn it into JS and transform it into an object that supports easy
+ * lookup.
+ */
 const dictionary = new Promise(
         (resolve, reject) => fs.readFile('./spanish_map/en-es.xml', (err, data) => {
-            err && reject(err);
-            resolve(data);
+            err ? reject(err) : resolve(data);
         })
     )
     .then(data => {
         const json = xml2json.toJson(data, {object: true});
         /**
-         * This is now in a JS object:
+         * This:
          *
          * <dic ...>
          *     <l>
@@ -31,7 +52,7 @@ const dictionary = new Promise(
          *     ...
          * </dic>
          *
-         * like this:
+         * is now in a JS object like this:
          *
          * {
          *     dic: {
@@ -41,6 +62,8 @@ const dictionary = new Promise(
          *         ]
          *     }
          * }
+         *
+         * but we're not done yet...
          */
         return json.dic.l;
     })
@@ -99,31 +122,44 @@ const dictionary = new Promise(
                 return dictionary;
             }
             const valid = /^[a-z0-9àáâäæãåāèéêëēėęîïíīįìôöòóœøōõûüùúūñçčğ%ºªþșł&+\s\-\.\/'´]+$/i;
+            // Let's remove the extra stuff. The data is not very uniform, but
+            // we have found ways to smooth it out:
             const spanish = entry.d
-                .replace(/\{[mfpns]\}/g, '')
-                .replace(/[!¡¿?]/g, '')
-                .replace(/\(.*\)/g, '')
-                .replace(/\[.*\]/g, '')
-                .replace(/\".*\"/g, '')
-                .replace(/^.*\:.*$/g, '')
-                .replace(/^.*\◌.*$/g, '')
-                .replace(/-́/g, '-')
-                .replace(/\u00a0/g, ' ')
-                .replace(/\u200e/g, '') // what even is this zero-length thing?
-                .split(/[,;]/)
-                .map(word => word.trim())
-                .filter(Boolean)
-                .filter(word => {
+                .replace(/\{[mfpns]\}/g, '')    // {m} and {f} mean gender etc?
+                .replace(/[!¡¿?]/g, '')         // Punctuation can go
+                .replace(/\(.*\)/g, '')         // (asides) are not needed
+                .replace(/\[.*\]/g, '')         // [some other asides] neither
+                .replace(/\".*\"/g, '')         // "example text" is no good
+                .replace(/^.*\:.*$/g, '')       // If it has a : there's no hope
+                .replace(/^.*\◌.*$/g, '')       // This symbol is hopeless too
+                .replace(/-́/g, '-')              // This is so unusual my
+                                                // monospace is confused
+                .replace(/\u00a0/g, ' ')        // The nbsp character
+                .replace(/\u200e/g, '')         // what even is this
+                                                // zero-length thing?
+                .split(/[,;]/)                  // Split the remaining text
+                .map(word => word.trim())       // No whitespace
+                .filter(Boolean)                // No blanks
+                .filter(word => {               // If any still have unusual
+                                                // characters, notify the coder
                     if (! valid.test(word)) {
                         throw new Error(`Bad word: <${word}>, <${entry.d}>, <${entry.c}>, ${[...word].map(char => char.charCodeAt(0).toString(16))}`);
                     }
                     return true;
                 });
+            // The point is to be able to use `dictionary[english_word]` and
+            // get an array of useful Spanish words that someone might search,
+            // all normalized in a way that we can also normalize the search
+            // terms.
             dictionary[entry.c] = (dictionary[entry.c] || []).concat(spanish);
             return dictionary;
         }, {});
     });
 
+/**
+ * As we built this script we discovered these words and phrases that were
+ * missing from the dictionary.
+ */
 const extraDictionary = {
     'air freshener': ['ambientador'],
     'allergies': ['alergias'],
@@ -244,6 +280,12 @@ const extraDictionary = {
     'yea': ['sí'],
 };
 
+/**
+ * As we built this script we discovered these words that have no proper
+ * translation. If someone searches for these things they'll use these same
+ * terms. They will find them because the frontend will search the original
+ * icon names as  well. So it is not necessary to translate them.
+ */
 const ignore = [
     "africa",
     "americas",
@@ -283,29 +325,44 @@ const ignore = [
     "yin",
 ];
 
+/**
+ * Wait until we have the icons and the dictionary so we can put them together
+ */
 Promise.all([
         icons,
         dictionary,
     ])
     .then(([icons, dictionary]) => {
+        // Add the extra words we defined.
         dictionary = {...dictionary, ...extraDictionary};
+
+        // Go through the list of icons that exist
         return icons.reduce((search, icon) => {
+            // Get each word in the icon name, as well as the whole name with
+            // spaces instead of -
             const terms = icon
                 .split(/\-/)
                 .concat(icon.replace(/\-/, ' '));
 
+            // Find the best Spanish for each word in the icon name
             terms.forEach(english => {
                 english = substitute(english, dictionary);
                 if (
-                    !/\s/.test(english)
-                    && !dictionary[english]
-                    && english.length > 1
-                    && !/\d/.test(english)
-                    && !ignore.includes(english)
+                    !dictionary[english]
+                    && !/\s/.test(english)      // Don't require the full term
+                                                // to exist
+                    && english.length > 1       // Ignore 1-letter words
+                    && !/\d/.test(english)      // Ignore numbers
+                    && !ignore.includes(english)// Ignore from this list
                 ) {
+                    // Tell the coder that we cannot translate this word
+                    // They'll have to add it to the extraDictionary or the
+                    // ignore list
                     throw new Error(`No translation for ${english} in ${icon}`);
                 }
                 if (dictionary[english]) {
+                    // Add all the Spanish words as keys and the icon we're
+                    // currently working with in a Set as the value
                     dictionary[english].forEach(spanish => {
                         search[spanish] = (search[spanish] || new Set()).add(icon);
                     });
@@ -316,6 +373,7 @@ Promise.all([
         }, {});
     })
     .then((spanish_map) => {
+        // Convert all the Set values to arrays
         return Object.keys(spanish_map)
             .reduce((map, spanish) => {
                 map[spanish] = [...spanish_map[spanish]];
@@ -323,16 +381,29 @@ Promise.all([
             }, {});
     })
     .then((spanish_map) => {
+        // Write to the file
         return new Promise((resolve, reject) => {
             fs.writeFile(
                 './spanish_map/spanish_map.json',
                 JSON.stringify(spanish_map, null, 0),
-                (err, result) => { err && reject(err) || resolve(result) }
+                (err, result) => { err ? reject(err) : resolve(result) }
             );
         });
     })
     .then(() => console.log('Done writing'));
 
+/**
+ * If we cannot find a term in the dictionary, we should check if can make
+ * it singular or remove -ing and maybe add -e. We'll pick up a few words
+ * without having to put them in the extraDictionary.
+ *
+ * If nothing is found, we return the english string and let the chips fall
+ * where they may.
+ *
+ * @param  string english
+ * @param  object dictionary
+ * @return string
+ */
 function substitute(english, dictionary) {
     if (dictionary[english]) {
         return english
