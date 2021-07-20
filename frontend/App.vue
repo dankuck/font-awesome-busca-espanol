@@ -81,9 +81,6 @@ const bad_icons =  [
 ];
 
 export default {
-    components: {
-        IconList,
-    },
     data() {
         const url = new URL(location);
         return {
